@@ -100,8 +100,22 @@ export async function createTransaction(req: Request, res: Response) {
     return;
   }
 
+  const idempotencyKey = req.header("Idempotency-Key")?.trim();
+  if (idempotencyKey !== undefined && idempotencyKey.length === 0) {
+    res.status(400).json({ error: "Idempotency-Key cannot be empty" });
+    return;
+  }
+
+  if (idempotencyKey && idempotencyKey.length > 128) {
+    res.status(400).json({ error: "Idempotency-Key must be 128 characters or fewer" });
+    return;
+  }
+
   try {
-    const result = await accountService.createTransaction(req.params.id, parsed.data);
+    const result = await accountService.createTransaction(req.params.id, {
+      ...parsed.data,
+      idempotencyKey,
+    });
     res.status(201).json({ data: result.transaction, account: result.account });
   } catch (err) {
     const code = (err as { code?: string }).code;
@@ -113,6 +127,11 @@ export async function createTransaction(req: Request, res: Response) {
 
     if (code === "VALIDATION" || code === "INSUFFICIENT_FUNDS") {
       res.status(400).json({ error: (err as Error).message });
+      return;
+    }
+
+    if (code === "IDEMPOTENCY_CONFLICT") {
+      res.status(409).json({ error: (err as Error).message });
       return;
     }
 

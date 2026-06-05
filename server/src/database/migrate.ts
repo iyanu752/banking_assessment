@@ -1,4 +1,4 @@
-import { dbRun, dbGet } from "./client";
+import { dbRun, dbGet, dbAll } from "./client";
 import logger from "../config/logger";
 import { Account } from "../Account/account.schema";
 
@@ -24,10 +24,17 @@ export async function initializeDatabase() {
         type TEXT CHECK(type IN ('DEPOSIT', 'WITHDRAWAL', 'TRANSFER')) NOT NULL,
         amount REAL NOT NULL CHECK(amount > 0),
         description TEXT NOT NULL,
+        idempotencyKey TEXT,
         createdAt TEXT NOT NULL,
         FOREIGN KEY(accountId) REFERENCES accounts(id),
         FOREIGN KEY(targetAccountId) REFERENCES accounts(id)
       )
+    `);
+    await ensureTransactionIdempotencyColumn();
+    await dbRun(`
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_transactions_idempotency_key
+      ON transactions(idempotencyKey)
+      WHERE idempotencyKey IS NOT NULL
     `);
     logger.info("Transactions table ready");
 
@@ -36,6 +43,15 @@ export async function initializeDatabase() {
   } catch (err) {
     logger.error("DB init failed", { error: (err as Error).message });
     process.exit(1);
+  }
+}
+
+async function ensureTransactionIdempotencyColumn() {
+  const columns = await dbAll<{ name: string }>("PRAGMA table_info(transactions)");
+  const hasColumn = columns.some((column) => column.name === "idempotencyKey");
+
+  if (!hasColumn) {
+    await dbRun("ALTER TABLE transactions ADD COLUMN idempotencyKey TEXT");
   }
 }
 
@@ -96,20 +112,20 @@ async function seedTransactionsIfEmpty() {
   if (existing && existing.count > 0) return;
 
   const seed = [
-    ["tx-1", "1", null, "DEPOSIT", 1000, "Received salary deposit", "2024-01-15T00:00:00.000Z"],
-    ["tx-2", "1", null, "WITHDRAWAL", 50, "Withdrew cash from ATM", "2024-01-16T00:00:00.000Z"],
-    ["tx-3", "1", "2", "TRANSFER", 200, "Transferred to savings account", "2024-01-17T00:00:00.000Z"],
-    ["tx-4", "2", null, "DEPOSIT", 2000, "Received investment return", "2024-01-15T00:00:00.000Z"],
-    ["tx-5", "2", null, "WITHDRAWAL", 100, "Online purchase debit", "2024-01-16T00:00:00.000Z"],
-    ["tx-6", "2", null, "DEPOSIT", 500, "Received refund", "2024-01-17T00:00:00.000Z"],
+    ["tx-1", "1", null, "DEPOSIT", 1000, "Received salary deposit", null, "2024-01-15T00:00:00.000Z"],
+    ["tx-2", "1", null, "WITHDRAWAL", 50, "Withdrew cash from ATM", null, "2024-01-16T00:00:00.000Z"],
+    ["tx-3", "1", "2", "TRANSFER", 200, "Transferred to savings account", null, "2024-01-17T00:00:00.000Z"],
+    ["tx-4", "2", null, "DEPOSIT", 2000, "Received investment return", null, "2024-01-15T00:00:00.000Z"],
+    ["tx-5", "2", null, "WITHDRAWAL", 100, "Online purchase debit", null, "2024-01-16T00:00:00.000Z"],
+    ["tx-6", "2", null, "DEPOSIT", 500, "Received refund", null, "2024-01-17T00:00:00.000Z"],
   ];
 
   await dbRun("BEGIN TRANSACTION");
   try {
     for (const transaction of seed) {
       await dbRun(
-        `INSERT INTO transactions (id, accountId, targetAccountId, type, amount, description, createdAt)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO transactions (id, accountId, targetAccountId, type, amount, description, idempotencyKey, createdAt)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
         transaction
       );
     }

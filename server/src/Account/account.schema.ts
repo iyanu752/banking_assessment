@@ -25,6 +25,7 @@ export interface AccountTransaction {
  type: TransactionType;
  amount: number;
  description: string;
+ idempotencyKey: string | null;
  createdAt: string;
 }
 
