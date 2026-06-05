@@ -1,6 +1,6 @@
-import { dbAll, dbGet, dbRun } from "../Client/client";
+import { dbAll, dbGet, dbRun } from "../database/client";
 import { Account } from "../Account/account.schema";
-import logger from "../Logger/logger";
+import logger from "../config/logger";
 
 export async function getAllAccounts(): Promise<Account[]> {
   return dbAll<Account>("SELECT * FROM accounts");

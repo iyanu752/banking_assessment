@@ -1,6 +1,6 @@
 import sqlite3, { Database } from "sqlite3";
-import config from "../Logger/config";
-import logger from "../Logger/logger";
+import config from "../config/config";
+import logger from "../config/logger";
 
 let db: Database;
 

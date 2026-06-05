@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { AccountSchema } from "../Account/account.schema";
 import * as accountService from "../Account/account.service";
-import logger from "../Logger/logger";
+import logger from "../config/logger";
 
 export async function getAccounts(_req: Request, res: Response) {
   try {

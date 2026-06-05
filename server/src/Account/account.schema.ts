@@ -3,7 +3,7 @@ import { z } from 'zod';
 export interface Account {
  id: string;
  accountNumber: string;
- accountType: "CHECKING" | "SAVING";
+ accountType: "CHECKING" | "SAVINGS";
  balance: number;
  accountHolder: string;
  createdAt: string;

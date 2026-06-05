@@ -21,6 +21,12 @@ coverage/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+*.log
+
+# Runtime data
+*.db
+*.sqlite
+*.sqlite-*
 
 # Editor directories and files
 .vscode/
