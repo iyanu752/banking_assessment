@@ -25,3 +25,183 @@
   margin: 0.5rem 0;
   color: #666;
 }
+
+.selectedCard {
+  border: 1px solid #1a73e8;
+}
+
+.cardButton {
+  margin-top: 1rem;
+}
+
+.transactionSection {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-top: 2rem;
+  padding: 1.5rem;
+}
+
+.sectionHeader,
+.pagination {
+  align-items: center;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.sectionHeader h2,
+.sectionHeader p,
+.transactionForm h3 {
+  margin: 0;
+}
+
+.sectionHeader p {
+  color: #666;
+  margin-top: 0.25rem;
+}
+
+.transactionForm,
+.controls {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  margin-top: 1.5rem;
+}
+
+.transactionForm h3 {
+  grid-column: 1 / -1;
+}
+
+.transactionForm label,
+.controls label {
+  color: #333;
+  display: flex;
+  flex-direction: column;
+  font-weight: 600;
+  gap: 0.35rem;
+  text-align: left;
+}
+
+.transactionForm input,
+.transactionForm select,
+.controls select {
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  box-sizing: border-box;
+  color-scheme: light;
+  color: #333;
+  font: inherit;
+  min-height: 40px;
+  padding: 0.5rem;
+  width: 100%;
+}
+
+.transactionForm input:focus,
+.transactionForm select:focus,
+.controls select:focus {
+  border-color: #1a73e8;
+  outline: 2px solid rgba(26, 115, 232, 0.16);
+}
+
+.transactionForm option,
+.controls option {
+  background-color: #fff;
+  color: #333;
+}
+
+.transactionForm button,
+.sectionHeader button,
+.pagination button,
+.cardButton {
+  background-color: #1a73e8;
+  border: 1px solid #1a73e8;
+  border-radius: 6px;
+  color: white;
+  cursor: pointer;
+  font: inherit;
+  padding: 0.55rem 0.8rem;
+}
+
+.transactionForm button:disabled,
+.pagination button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.submitRow {
+  align-items: end;
+  display: flex;
+  padding-left: 0.25rem;
+}
+
+.submitRow button {
+  min-height: 40px;
+  width: 100%;
+}
+
+.formError,
+.error,
+.status {
+  border-radius: 6px;
+  margin: 1rem 0;
+  padding: 0.75rem;
+  text-align: left;
+}
+
+.formError {
+  background: #fdecec;
+  color: #9b1c1c;
+  grid-column: 1 / -1;
+  margin: 0;
+}
+
+.error {
+  background: #fdecec;
+  color: #9b1c1c;
+}
+
+.status {
+  background: #eef4ff;
+  color: #174ea6;
+}
+
+.tableWrapper {
+  margin-top: 1.5rem;
+  overflow-x: auto;
+}
+
+.table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.table th,
+.table td {
+  border-bottom: 1px solid #e5e5e5;
+  color: #333;
+  padding: 0.75rem;
+  text-align: left;
+}
+
+.table th {
+  background: #f7f7f7;
+}
+
+.pagination {
+  color: #333;
+  margin-top: 1rem;
+}
+
+@media (max-width: 640px) {
+  .sectionHeader,
+  .pagination {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .submitRow button {
+    width: 100%;
+  }
+}

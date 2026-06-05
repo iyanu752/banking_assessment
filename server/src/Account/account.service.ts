@@ -19,6 +19,8 @@
 //Alltogether is should work like this
 
 //POST/transaction -> Indempotencey key(not used) -> perform atomic operations(validations, updates on accounts etc) -> send logs
+
+//things that can probably be added , audit service to keep audit trails, ledger service for book keeping records, rabbitmq for processing queues redis for caching response
    
 
 import { randomUUID } from "crypto";
