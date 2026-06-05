@@ -15,14 +15,32 @@ export async function initializeDatabase() {
       )
     `);
     logger.info("Accounts table ready");
-    await seedIfEmpty();
+
+    await dbRun(`
+      CREATE TABLE IF NOT EXISTS transactions (
+        id TEXT PRIMARY KEY,
+        accountId TEXT NOT NULL,
+        targetAccountId TEXT,
+        type TEXT CHECK(type IN ('DEPOSIT', 'WITHDRAWAL', 'TRANSFER')) NOT NULL,
+        amount REAL NOT NULL CHECK(amount > 0),
+        description TEXT NOT NULL,
+        createdAt TEXT NOT NULL,
+        FOREIGN KEY(accountId) REFERENCES accounts(id),
+        FOREIGN KEY(targetAccountId) REFERENCES accounts(id)
+      )
+    `);
+    logger.info("Transactions table ready");
+
+    await seedAccountsIfEmpty();
+    await seedTransactionsIfEmpty();
   } catch (err) {
     logger.error("DB init failed", { error: (err as Error).message });
     process.exit(1);
   }
 }
 
-async function seedIfEmpty() {
+async function seedAccountsIfEmpty() {
+  // we have a validation to check if accounts already exist, leave user data untouched.
   const existing = await dbGet<{ count: number }>(
     "SELECT COUNT(*) as count FROM accounts"
   );
@@ -35,7 +53,7 @@ async function seedIfEmpty() {
       accountType: "CHECKING",
       balance: 5000.0,
       accountHolder: "John Doe",
-      createdAt: new Date().toISOString(),
+      createdAt: "2024-01-01T00:00:00.000Z",
     },
     {
       id: "2",
@@ -43,7 +61,7 @@ async function seedIfEmpty() {
       accountType: "SAVINGS",
       balance: 10000.0,
       accountHolder: "Jane Smith",
-      createdAt: new Date().toISOString(),
+      createdAt: "2024-01-01T00:00:00.000Z",
     },
   ];
 
@@ -64,9 +82,41 @@ async function seedIfEmpty() {
       );
     }
     await dbRun("COMMIT");
-    logger.info("Seed data inserted");
+    logger.info("Seed account data inserted");
   } catch (err) {
     await dbRun("ROLLBACK");
-    logger.error("Seed transaction rolled back", { error: (err as Error).message });
+    logger.error("Seed account transaction rolled back", { error: (err as Error).message });
+  }
+}
+
+async function seedTransactionsIfEmpty() {
+  const existing = await dbGet<{ count: number }>(
+    "SELECT COUNT(*) as count FROM transactions"
+  );
+  if (existing && existing.count > 0) return;
+
+  const seed = [
+    ["tx-1", "1", null, "DEPOSIT", 1000, "Received salary deposit", "2024-01-15T00:00:00.000Z"],
+    ["tx-2", "1", null, "WITHDRAWAL", 50, "Withdrew cash from ATM", "2024-01-16T00:00:00.000Z"],
+    ["tx-3", "1", "2", "TRANSFER", 200, "Transferred to savings account", "2024-01-17T00:00:00.000Z"],
+    ["tx-4", "2", null, "DEPOSIT", 2000, "Received investment return", "2024-01-15T00:00:00.000Z"],
+    ["tx-5", "2", null, "WITHDRAWAL", 100, "Online purchase debit", "2024-01-16T00:00:00.000Z"],
+    ["tx-6", "2", null, "DEPOSIT", 500, "Received refund", "2024-01-17T00:00:00.000Z"],
+  ];
+
+  await dbRun("BEGIN TRANSACTION");
+  try {
+    for (const transaction of seed) {
+      await dbRun(
+        `INSERT INTO transactions (id, accountId, targetAccountId, type, amount, description, createdAt)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        transaction
+      );
+    }
+    await dbRun("COMMIT");
+    logger.info("Seed transaction data inserted");
+  } catch (err) {
+    await dbRun("ROLLBACK");
+    logger.error("Seed transaction rollback", { error: (err as Error).message });
   }
 }
